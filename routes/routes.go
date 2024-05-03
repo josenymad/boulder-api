@@ -11,3 +11,7 @@ func HealthCheckHandler(c *gin.Context) {
 		"message": "Service is healthy",
 	})
 }
+
+func CreateCompetitionCategory(c *gin.Context) {
+
+}

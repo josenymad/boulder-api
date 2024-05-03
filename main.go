@@ -13,10 +13,10 @@ import (
 	_ "github.com/lib/pq"
 )
 
+var DB *sql.DB
 var testFlag = flag.Bool("test", false, "Run in test mode")
 
 func connectDB(test bool) {
-
 	envVars := config.GetEnvVars(test)
 
 	portInt, strconvErr := strconv.Atoi(envVars.Port)
@@ -29,12 +29,13 @@ func connectDB(test bool) {
 		envVars.Host, portInt, envVars.User, envVars.Password, envVars.Name)
 
 	var err error
-	config.DB, err = sql.Open("postgres", connStr)
+
+	DB, err = sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = config.DB.Ping()
+	err = DB.Ping()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,7 +54,7 @@ func main() {
 		connectDB(false)
 	}
 
-	defer config.DB.Close()
+	defer DB.Close()
 
 	router := gin.Default()
 
