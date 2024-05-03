@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"flag"
 	"fmt"
 	"log"
 	"strconv"
@@ -11,8 +12,11 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func connectDB() {
-	envVars := config.GetEnvVars()
+var testFlag = flag.Bool("test", false, "Run in test mode")
+
+func connectDB(test bool) {
+
+	envVars := config.GetEnvVars(test)
 
 	portInt, strconvErr := strconv.Atoi(envVars.Port)
 	if strconvErr != nil {
@@ -38,7 +42,16 @@ func connectDB() {
 }
 
 func main() {
-	connectDB()
+	flag.Parse()
+
+	if *testFlag {
+		fmt.Println("Running in test mode")
+		connectDB(true)
+	} else {
+		fmt.Println("Running in normal mode")
+		connectDB(false)
+	}
+
 	defer config.DB.Close()
 
 	router := gin.Default()
