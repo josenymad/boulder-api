@@ -8,7 +8,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var Db *sql.DB
+var DB *sql.DB
 
 type EnvVars struct {
 	Host string;
