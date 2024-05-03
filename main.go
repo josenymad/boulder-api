@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/josenymad/boulder-api/config"
+	"github.com/josenymad/boulder-api/routes"
 	_ "github.com/lib/pq"
 )
 
@@ -55,6 +56,8 @@ func main() {
 	defer config.DB.Close()
 
 	router := gin.Default()
+
+	router.GET("/health", routes.HealthCheckHandler)
 
 	err := router.Run(":8080")
 	if err != nil {
