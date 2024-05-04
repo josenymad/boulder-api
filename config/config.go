@@ -1,12 +1,17 @@
 package config
 
 import (
+	"database/sql"
 	"log"
 	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/josenymad/boulder-api/types"
 )
+
+var DB *sql.DB
+
+const DefaultPort = ":8080"
 
 func GetEnvVars(test bool) types.EnvVars {
 	err := godotenv.Load()

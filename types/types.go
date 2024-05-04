@@ -7,3 +7,8 @@ type EnvVars struct {
 	Password string
 	Name     string
 }
+
+type Category struct {
+	ID   string
+	Name string
+}

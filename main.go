@@ -1,11 +1,16 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
+	"os"
+	"os/signal"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/josenymad/boulder-api/config"
@@ -13,7 +18,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var DB *sql.DB
 var testFlag = flag.Bool("test", false, "Run in test mode")
 
 func connectDB(test bool) {
@@ -30,14 +34,14 @@ func connectDB(test bool) {
 
 	var err error
 
-	DB, err = sql.Open("postgres", connStr)
+	config.DB, err = sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to connect to the database:", err)
 	}
 
-	err = DB.Ping()
+	err = config.DB.Ping()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to ping the database:", err)
 	}
 
 	fmt.Println("Connected to the database")
@@ -54,14 +58,35 @@ func main() {
 		connectDB(false)
 	}
 
-	defer DB.Close()
+	defer config.DB.Close()
 
 	router := gin.Default()
 
 	router.GET("/health", routes.HealthCheckHandler)
 
-	err := router.Run(":8080")
-	if err != nil {
-		log.Fatal(err)
+	// Graceful shutdown
+	srv := &http.Server{
+		Addr:    config.DefaultPort,
+		Handler: router,
 	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("ListenAndServe(): %s\n", err)
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown the server with
+	// a timeout of 5 seconds.
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
+	<-quit
+	log.Println("Shutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatal("Server forced to shutdown:", err)
+	}
+	log.Println("Server exiting")
 }
