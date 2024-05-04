@@ -21,7 +21,7 @@ func CreateCompetitionCategory(c *gin.Context) {
 		return
 	}
 
-	query := `INSERT INTO competition_categories (name) VALUES ($1) RETURNING category_id`
+	query := "INSERT INTO competition_categories (name) VALUES ($1) RETURNING category_id"
 
 	err := config.DB.QueryRow(query, category.Name).Scan(&category.ID)
 	if err != nil {
@@ -30,4 +30,22 @@ func CreateCompetitionCategory(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, category)
+}
+
+func CreateRound(c *gin.Context) {
+	var round types.Round
+	if err := c.BindJSON(&round); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Failed to bind round JSON", "error": err.Error()})
+		return
+	}
+
+	query := "INSERT INTO rounds (round_number, start_date, end_date) VALUES ($1, $2, $3) RETURNING round_id"
+
+	err := config.DB.QueryRow(query, round.Number, round.StartDate, round.EndDate).Scan(&round.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to create round", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, round)
 }

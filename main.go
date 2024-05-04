@@ -63,7 +63,8 @@ func main() {
 	router := gin.Default()
 
 	router.GET("/health", routes.HealthCheckHandler)
-	router.POST("categories", routes.CreateCompetitionCategory)
+	router.POST("/categories", routes.CreateCompetitionCategory)
+	router.POST("/rounds", routes.CreateRound)
 
 	// Graceful shutdown
 	srv := &http.Server{
