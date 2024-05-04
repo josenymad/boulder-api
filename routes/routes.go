@@ -21,7 +21,7 @@ func CreateCompetitionCategory(c *gin.Context) {
 		return
 	}
 
-	query := `INSERT INTO competition_categories (name) VALUE ($1) RETURNING id`
+	query := `INSERT INTO competition_categories (name) VALUES ($1) RETURNING category_id`
 
 	err := config.DB.QueryRow(query, category.Name).Scan(&category.ID)
 	if err != nil {
