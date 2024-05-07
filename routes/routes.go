@@ -113,12 +113,12 @@ func GetAllCategories(c *gin.Context) {
 	query := "SELECT * FROM competition_categories"
 	rows, err := config.DB.Query(query)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get competition category rows", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get competition categories", "error": err.Error()})
 		return
 	}
 	defer func() {
 		if err := rows.Close(); err != nil {
-			log.Printf("Error closing rows: %v", err)
+			log.Printf("Error closing competition category rows: %v", err)
 		}
 	}()
 
@@ -132,9 +132,69 @@ func GetAllCategories(c *gin.Context) {
 		categories = append(categories, category)
 	}
 	if err := rows.Err(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error iterating over rows", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error iterating over competition category rows", "error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, categories)
+}
+
+func GetAllRounds(c *gin.Context) {
+	query := "SELECT * FROM rounds"
+	rows, err := config.DB.Query(query)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get rounds", "error": err.Error()})
+		return
+	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("Error closing rounds rows: %v", err)
+		}
+	}()
+
+	var rounds []types.Round
+	for rows.Next() {
+		var round types.Round
+		if err := rows.Scan(&round.ID, &round.Number, &round.StartDate, &round.EndDate); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to scan rounds columns", "error": err.Error()})
+			return
+		}
+		rounds = append(rounds, round)
+	}
+	if err := rows.Err(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error iterating over rounds rows", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, rounds)
+}
+
+func GetAllCompetitors(c *gin.Context) {
+	query := "SELECT competitor_id, name, category_id FROM competitors"
+	rows, err := config.DB.Query(query)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get competitors", "error": err.Error()})
+		return
+	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("Error closing competitor rows: %v", err)
+		}
+	}()
+
+	var competitors []types.Competitor
+	for rows.Next() {
+		var competitor types.Competitor
+		if err := rows.Scan(&competitor.ID, &competitor.Name, &competitor.CategoryID); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to scan competitor columns", "error": err.Error()})
+			return
+		}
+		competitors = append(competitors, competitor)
+	}
+	if err := rows.Err(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error iterating over competitor rows", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, competitors)
 }
