@@ -49,3 +49,21 @@ func CreateRound(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, round)
 }
+
+func CreateCompetitor(c *gin.Context) {
+	var competitor types.Competitor
+	if err := c.BindJSON(&competitor); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Failed to bind competitor JSON", "error": err.Error()})
+		return
+	}
+
+	query := "INSERT INTO competitors (name, email, password, category_id) VALUES ($1, $2, $3, $4) RETURNING competitor_id"
+
+	err := config.DB.QueryRow(query, competitor.Name, competitor.Email, competitor.Password, competitor.CategoryID).Scan(&competitor.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to create competitor", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, competitor)
+}
