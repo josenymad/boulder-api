@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,6 +14,8 @@ func HealthCheckHandler(c *gin.Context) {
 		"message": "Service is healthy",
 	})
 }
+
+// POST
 
 func CreateCompetitionCategory(c *gin.Context) {
 	var category types.Category
@@ -102,4 +105,36 @@ func CreateScore(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, score)
+}
+
+// GET
+
+func GetAllCategories(c *gin.Context) {
+	query := "SELECT * FROM competition_categories"
+	rows, err := config.DB.Query(query)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get competition category rows", "error": err.Error()})
+		return
+	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("Error closing rows: %v", err)
+		}
+	}()
+
+	var categories []types.Category
+	for rows.Next() {
+		var category types.Category
+		if err := rows.Scan(&category.ID, &category.Name); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to scan competition category columns", "error": err.Error()})
+			return
+		}
+		categories = append(categories, category)
+	}
+	if err := rows.Err(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error iterating over rows", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, categories)
 }
