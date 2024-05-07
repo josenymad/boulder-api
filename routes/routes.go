@@ -67,3 +67,21 @@ func CreateCompetitor(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, competitor)
 }
+
+func CreateBoulderProblem(c *gin.Context) {
+	var boulderProblem types.BoulderProblem
+	if err := c.BindJSON(&boulderProblem); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Failed to bind boulder problem JSON", "error": err.Error()})
+		return
+	}
+
+	query := "INSERT INTO boulder_problems (round_id, problem_number) VALUES ($1, $2) RETURNING problem_id"
+
+	err := config.DB.QueryRow(query, boulderProblem.RoundID, boulderProblem.Number).Scan(&boulderProblem.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to create boulder problem", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, boulderProblem)
+}

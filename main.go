@@ -66,6 +66,7 @@ func main() {
 	router.POST("/categories", routes.CreateCompetitionCategory)
 	router.POST("/rounds", routes.CreateRound)
 	router.POST("/competitors", routes.CreateCompetitor)
+	router.POST("/boulder-problems", routes.CreateBoulderProblem)
 
 	// Graceful shutdown
 	srv := &http.Server{

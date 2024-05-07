@@ -29,3 +29,9 @@ type Competitor struct {
 	Password   string `json:"password" binding:"required"`
 	CategoryID string `json:"category_id" binding:"required"`
 }
+
+type BoulderProblem struct {
+	ID      string `json:"id"`
+	RoundID string `json:"round_id" binding:"required"`
+	Number  string `json:"number" binding:"required"`
+}
