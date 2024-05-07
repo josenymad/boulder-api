@@ -85,3 +85,21 @@ func CreateBoulderProblem(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, boulderProblem)
 }
+
+func CreateScore(c *gin.Context) {
+	var score types.Score
+	if err := c.BindJSON(&score); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Failed to bind score JSON", "error": err.Error()})
+		return
+	}
+
+	query := "INSERT INTO scores (competitor_id, problem_id, attempts, points) VALUES ($1, $2, $3, $4) RETURNING score_id"
+
+	err := config.DB.QueryRow(query, score.CompetitorID, score.ProblemID, score.Attempts, score.Points).Scan(&score.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to create score", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, score)
+}
