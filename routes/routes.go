@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/josenymad/boulder-api/config"
 	"github.com/josenymad/boulder-api/types"
+	"github.com/josenymad/boulder-api/utils"
 )
 
 func HealthCheckHandler(c *gin.Context) {
@@ -126,7 +127,7 @@ func GetAllCategories(c *gin.Context) {
 	for rows.Next() {
 		var category types.Category
 		if err := rows.Scan(&category.ID, &category.Name); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to scan competition category columns", "error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to scan competition category rows", "error": err.Error()})
 			return
 		}
 		categories = append(categories, category)
@@ -156,7 +157,7 @@ func GetAllRounds(c *gin.Context) {
 	for rows.Next() {
 		var round types.Round
 		if err := rows.Scan(&round.ID, &round.Number, &round.StartDate, &round.EndDate); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to scan rounds columns", "error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to scan rounds rows", "error": err.Error()})
 			return
 		}
 		rounds = append(rounds, round)
@@ -186,7 +187,7 @@ func GetAllCompetitors(c *gin.Context) {
 	for rows.Next() {
 		var competitor types.Competitor
 		if err := rows.Scan(&competitor.ID, &competitor.Name, &competitor.CategoryID); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to scan competitor columns", "error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to scan competitor rows", "error": err.Error()})
 			return
 		}
 		competitors = append(competitors, competitor)
@@ -197,4 +198,57 @@ func GetAllCompetitors(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, competitors)
+}
+
+func GetAllScores(c *gin.Context) {
+	category := c.Query("category")
+	query, err := utils.BuildScoresQueryString(category)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error building scores query string", "error": err.Error()})
+		return
+	}
+
+	rows, err := config.DB.Query(query)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get scores", "error": err.Error()})
+		return
+	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("Error closing scores rows: %v", err)
+		}
+	}()
+
+	var totalScores []types.TotalScore
+	columns, err := rows.Columns()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error getting total scores columns", "error": err.Error()})
+		return
+	}
+	values := make([]interface{}, len(columns))
+	for rows.Next() {
+		for i := range values {
+			values[i] = new(interface{})
+		}
+
+		err := rows.Scan(values...)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to scan total scores row", "error": err.Error()})
+			return
+		}
+
+		totalScore := make(types.TotalScore)
+		for i, column := range columns {
+			val := *(values[i].(*interface{}))
+			totalScore[column] = val
+		}
+		totalScores = append(totalScores, totalScore)
+	}
+
+	if err := rows.Err(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error iterating over total scores rows", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, totalScores)
 }

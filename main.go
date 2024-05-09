@@ -71,6 +71,7 @@ func main() {
 	router.GET("/categories", routes.GetAllCategories)
 	router.GET("/rounds", routes.GetAllRounds)
 	router.GET("/competitors", routes.GetAllCompetitors)
+	router.GET("/scores", routes.GetAllScores)
 
 	// Graceful shutdown
 	srv := &http.Server{

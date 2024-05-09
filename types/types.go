@@ -43,3 +43,5 @@ type Score struct {
 	CompetitorID int `json:"competitor_id" binding:"required"`
 	ProblemID    int `json:"problem_id" binding:"required"`
 }
+
+type TotalScore map[string]interface{}
