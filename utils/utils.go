@@ -27,7 +27,7 @@ func RemoveLastComma(query string) string {
 	return query
 }
 
-func BuildScoresQueryString(category string) (query string, err error) {
+func BuildScoresQueryString(category string, competition string) (query string, err error) {
 	queryStart := "SELECT competitor_name, SUM(points) AS TOTAL,\n"
 	queryEnd := fmt.Sprintf(
 		`FROM (
@@ -46,6 +46,8 @@ func BuildScoresQueryString(category string) (query string, err error) {
 			boulder_problems bp ON s.problem_id = bp.problem_id
 		LEFT JOIN 
 			rounds r ON bp.round_id = r.round_id
+		WHERE
+			r.competition_id = (SELECT competition_id FROM competitions WHERE competition_name = '%s')
 	) AS subquery
 	WHERE
 		category_name = '%s'
@@ -53,6 +55,7 @@ func BuildScoresQueryString(category string) (query string, err error) {
 		competitor_name
 	ORDER BY
 		TOTAL DESC;`,
+		competition,
 		category,
 	)
 

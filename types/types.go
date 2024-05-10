@@ -16,10 +16,11 @@ type Category struct {
 }
 
 type Round struct {
-	ID        int       `json:"id"`
-	Number    int       `json:"number" binding:"required"`
-	StartDate time.Time `json:"start_date" binding:"required"`
-	EndDate   time.Time `json:"end_date" binding:"required"`
+	ID            int       `json:"id"`
+	Number        int       `json:"number" binding:"required"`
+	StartDate     time.Time `json:"start_date" binding:"required"`
+	EndDate       time.Time `json:"end_date" binding:"required"`
+	CompetitionID int       `json:"competition_id" binding:"required"`
 }
 
 type Competitor struct {
@@ -42,6 +43,11 @@ type Score struct {
 	Points       int `json:"points" binding:"required"`
 	CompetitorID int `json:"competitor_id" binding:"required"`
 	ProblemID    int `json:"problem_id" binding:"required"`
+}
+
+type Competition struct {
+	ID   int    `json:"id"`
+	Name string `json:"name" binding:"required"`
 }
 
 type TotalScore map[string]interface{}

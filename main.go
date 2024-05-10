@@ -63,6 +63,7 @@ func main() {
 	router := gin.Default()
 
 	router.GET("/health", routes.HealthCheckHandler)
+	router.POST("/competition", routes.CreateCompetition)
 	router.POST("/categories", routes.CreateCompetitionCategory)
 	router.POST("/rounds", routes.CreateRound)
 	router.POST("/competitors", routes.CreateCompetitor)

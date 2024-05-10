@@ -18,6 +18,24 @@ func HealthCheckHandler(c *gin.Context) {
 
 // POST
 
+func CreateCompetition(c *gin.Context) {
+	var competition types.Competition
+	if err := c.BindJSON(&competition); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Failed to bind competition JSON", "error": err.Error()})
+		return
+	}
+
+	query := `INSERT INTO competitions (competition_name) VALUES ($1) RETURNING competition_id`
+
+	err := config.DB.QueryRow(query, competition.Name).Scan(&competition.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to create competition", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, competition)
+}
+
 func CreateCompetitionCategory(c *gin.Context) {
 	var category types.Category
 	if err := c.BindJSON(&category); err != nil {
@@ -43,9 +61,9 @@ func CreateRound(c *gin.Context) {
 		return
 	}
 
-	query := "INSERT INTO rounds (round_number, start_date, end_date) VALUES ($1, $2, $3) RETURNING round_id"
+	query := "INSERT INTO rounds (round_number, start_date, end_date, competition_id) VALUES ($1, $2, $3, $4) RETURNING round_id"
 
-	err := config.DB.QueryRow(query, round.Number, round.StartDate, round.EndDate).Scan(&round.ID)
+	err := config.DB.QueryRow(query, round.Number, round.StartDate, round.EndDate, round.CompetitionID).Scan(&round.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to create round", "error": err.Error()})
 		return
@@ -202,7 +220,8 @@ func GetAllCompetitors(c *gin.Context) {
 
 func GetAllScores(c *gin.Context) {
 	category := c.Query("category")
-	query, err := utils.BuildScoresQueryString(category)
+	competition := c.Query("competition")
+	query, err := utils.BuildScoresQueryString(category, competition)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error building scores query string", "error": err.Error()})
 		return
