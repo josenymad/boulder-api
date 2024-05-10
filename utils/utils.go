@@ -8,9 +8,9 @@ import (
 	"github.com/josenymad/boulder-api/config"
 )
 
-func GetNumberOfRounds() (count int, err error) {
-	query := "SELECT COUNT(*) FROM rounds"
-	err = config.DB.QueryRow(query).Scan(&count)
+func GetNumberOfRounds(competition string) (count int, err error) {
+	query := "SELECT COUNT(*) FROM rounds WHERE competition_id = (SELECT competition_id FROM competitions WHERE competition_name = $1)"
+	err = config.DB.QueryRow(query, competition).Scan(&count)
 	if err != nil {
 		return 0, errors.New("failed to get round count")
 	}
@@ -59,7 +59,7 @@ func BuildScoresQueryString(category string, competition string) (query string, 
 		category,
 	)
 
-	numberOfRounds, err := GetNumberOfRounds()
+	numberOfRounds, err := GetNumberOfRounds(competition)
 	if err != nil {
 		return query, errors.New("failed to get number of rounds")
 	}

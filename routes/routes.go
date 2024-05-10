@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -189,8 +190,9 @@ func GetAllCategories(c *gin.Context) {
 }
 
 func GetAllRounds(c *gin.Context) {
-	query := "SELECT * FROM rounds"
-	rows, err := config.DB.Query(query)
+	competition := c.Param("competition")
+	query := "SELECT round_id, round_number, start_date, end_date FROM rounds WHERE competition_id = (SELECT competition_id FROM competitions WHERE competition_name = $1)"
+	rows, err := config.DB.Query(query, competition)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get rounds", "error": err.Error()})
 		return
@@ -256,6 +258,8 @@ func GetAllScores(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error building scores query string", "error": err.Error()})
 		return
 	}
+
+	fmt.Println(query)
 
 	rows, err := config.DB.Query(query)
 	if err != nil {
