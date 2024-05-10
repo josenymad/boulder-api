@@ -128,6 +128,36 @@ func CreateScore(c *gin.Context) {
 
 // GET
 
+func GetAllCompetitions(c *gin.Context) {
+	query := "SELECT * FROM competitions"
+	rows, err := config.DB.Query(query)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get competitions", "error": err.Error()})
+		return
+	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("Error closing competition rows: %v", err)
+		}
+	}()
+
+	var competitions []types.Competition
+	for rows.Next() {
+		var competition types.Competition
+		if err := rows.Scan(&competition.ID, &competition.Name); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to scan competition rows", "error": err.Error()})
+			return
+		}
+		competitions = append(competitions, competition)
+	}
+	if err := rows.Err(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error iterating over competition rows", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, competitions)
+}
+
 func GetAllCategories(c *gin.Context) {
 	query := "SELECT * FROM competition_categories"
 	rows, err := config.DB.Query(query)
