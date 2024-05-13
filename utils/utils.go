@@ -9,7 +9,7 @@ import (
 )
 
 func GetNumberOfRounds(competition string) (count int, err error) {
-	query := "SELECT COUNT(*) FROM rounds WHERE competition_id = (SELECT competition_id FROM competitions WHERE competition_name = $1)"
+	query := "SELECT COUNT(*) FROM rounds WHERE competition_id = $1"
 	err = config.DB.QueryRow(query, competition).Scan(&count)
 	if err != nil {
 		return 0, errors.New("failed to get round count")
@@ -33,7 +33,7 @@ func BuildScoresQueryString(category string, competition string) (query string, 
 		`FROM (
 		SELECT 
 			c.name AS competitor_name,
-			cat.name AS category_name,
+			c.category_id, 
 			r.round_number,
 			s.points
 		FROM 
@@ -47,10 +47,10 @@ func BuildScoresQueryString(category string, competition string) (query string, 
 		LEFT JOIN 
 			rounds r ON bp.round_id = r.round_id
 		WHERE
-			r.competition_id = (SELECT competition_id FROM competitions WHERE competition_name = '%s')
+			r.competition_id = %s
 	) AS subquery
 	WHERE
-		category_name = '%s'
+		subquery.category_id = %s
 	GROUP BY
 		competitor_name
 	ORDER BY
