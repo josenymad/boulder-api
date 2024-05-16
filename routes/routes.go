@@ -188,6 +188,38 @@ func GetAllCategories(c *gin.Context) {
 	c.JSON(http.StatusOK, categories)
 }
 
+func GetBoulderProblems(c *gin.Context) {
+	round := c.Param("round")
+	query := "SELECT problem_id, problem_number FROM boulder_problems WHERE round_id = $1"
+
+	rows, err := config.DB.Query(query, round)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get boulder problems", "error": err.Error()})
+		return
+	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("Error closing boulder problem rows: %v", err)
+		}
+	}()
+
+	var boulderProblems []types.BoulderProblem
+	for rows.Next() {
+		var boulderProblem types.BoulderProblem
+		if err := rows.Scan(&boulderProblem.ID, &boulderProblem.Number); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to scan boulder problem rows", "error": err.Error()})
+			return
+		}
+		boulderProblems = append(boulderProblems, boulderProblem)
+	}
+	if err := rows.Err(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error iterating over boulder problem rows", "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, boulderProblems)
+}
+
 func GetAllRounds(c *gin.Context) {
 	competition := c.Param("competition")
 	query := "SELECT round_id, round_number, start_date, end_date FROM rounds WHERE competition_id = $1"

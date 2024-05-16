@@ -71,6 +71,7 @@ func main() {
 	router.POST("/scores", routes.CreateScore)
 	router.GET("/competitions", routes.GetAllCompetitions)
 	router.GET("/categories", routes.GetAllCategories)
+	router.GET("/boulder-problems/:round", routes.GetBoulderProblems)
 	router.GET("/rounds/:competition", routes.GetAllRounds)
 	router.GET("/competitors", routes.GetAllCompetitors)
 	router.GET("/scores", routes.GetAllScores)
