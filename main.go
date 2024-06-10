@@ -17,19 +17,26 @@ import (
 )
 
 var testFlag = flag.Bool("test", false, "Run in test mode")
+var developmentFlag = flag.Bool("development", false, "Run in development mode")
 
 func main() {
 	flag.Parse()
 
 	if *testFlag {
 		fmt.Println("Running in test mode")
-		err := config.ConnectDB(true)
+		err := config.ConnectDB("test")
+		if err != nil {
+			log.Fatalf("Could not set up database: %v", err)
+		}
+	} else if *developmentFlag {
+		fmt.Println("Running in development mode")
+		err := config.ConnectDB("development")
 		if err != nil {
 			log.Fatalf("Could not set up database: %v", err)
 		}
 	} else {
 		fmt.Println("Running in normal mode")
-		err := config.ConnectDB(false)
+		err := config.ConnectDB("")
 		if err != nil {
 			log.Fatalf("Could not set up database: %v", err)
 		}

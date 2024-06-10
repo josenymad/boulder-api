@@ -24,7 +24,7 @@ func setUpRouter() *gin.Engine {
 
 func TestCreateCompetition_Success(t *testing.T) {
 	router := setUpRouter()
-	err := config.ConnectDB(true)
+	err := config.ConnectDB("test")
 	if err != nil {
 		log.Fatalf("Could not set up database: %v", err)
 	}

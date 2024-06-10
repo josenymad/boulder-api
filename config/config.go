@@ -15,8 +15,8 @@ var DB *sql.DB
 
 const DefaultPort string = ":8080"
 
-func ConnectDB(test bool) error {
-	envVars := GetEnvVars(test)
+func ConnectDB(version string) error {
+	envVars := GetEnvVars(version)
 
 	var err error
 
@@ -42,27 +42,32 @@ func ConnectDB(test bool) error {
 	return nil
 }
 
-func GetEnvVars(test bool) types.EnvVars {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-	}
-
-	if test {
-		return types.EnvVars{
-			Host:     os.Getenv("HOST"),
-			Port:     os.Getenv("PORT"),
-			User:     os.Getenv("POSTGRES_USER"),
-			Password: os.Getenv("POSTGRES_PASSWORD"),
-			Name:     os.Getenv("TEST_DB_NAME"),
+func GetEnvVars(version string) types.EnvVars {
+	switch version {
+	case "test":
+		err := godotenv.Load("../.env.test")
+		if err != nil {
+			log.Fatalf("Error loading .env file: %v", err)
+		}
+	case "development":
+		err := godotenv.Load(".env.test")
+		if err != nil {
+			log.Fatalf("Error loading .env file: %v", err)
+		}
+	default:
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatalf("Error loading .env file: %v", err)
 		}
 	}
 
-	return types.EnvVars{
+	envVars := types.EnvVars{
 		Host:     os.Getenv("HOST"),
 		Port:     os.Getenv("PORT"),
 		User:     os.Getenv("POSTGRES_USER"),
 		Password: os.Getenv("POSTGRES_PASSWORD"),
 		Name:     os.Getenv("DB_NAME"),
 	}
+
+	return envVars
 }
