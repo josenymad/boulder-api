@@ -43,12 +43,12 @@ func ConnectDB(test bool) error {
 }
 
 func GetEnvVars(test bool) types.EnvVars {
-	if test {
-		err := godotenv.Load("../.env")
-		if err != nil {
-			log.Fatal("Error loading .env file")
-		}
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
 
+	if test {
 		return types.EnvVars{
 			Host:     os.Getenv("HOST"),
 			Port:     os.Getenv("PORT"),
@@ -56,11 +56,6 @@ func GetEnvVars(test bool) types.EnvVars {
 			Password: os.Getenv("POSTGRES_PASSWORD"),
 			Name:     os.Getenv("TEST_DB_NAME"),
 		}
-	}
-
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
 	}
 
 	return types.EnvVars{
