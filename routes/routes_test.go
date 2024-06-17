@@ -24,6 +24,7 @@ func setUpRouter() *gin.Engine {
 	router.POST("/rounds", routes.CreateRound)
 	router.POST("/competitors", routes.CreateCompetitor)
 	router.POST("/boulder-problems", routes.CreateBoulderProblem)
+	router.POST("/scores", routes.CreateScore)
 	return router
 }
 
@@ -199,4 +200,42 @@ func TestCreateBloc(t *testing.T) {
 	}
 	assert.Equal(t, float64(2), response["number"])
 	assert.Equal(t, float64(21), response["round_id"])
+}
+
+func TestCreateScore(t *testing.T) {
+	router := setUpRouter()
+	err := config.ConnectDB("test")
+	if err != nil {
+		log.Fatalf("Could not set up database: %v", err)
+	}
+
+	score := types.Score{
+		Attempts:     1,
+		Points:       1,
+		CompetitorID: 19,
+		ProblemID:    51,
+	}
+	body, err := json.Marshal(score)
+	if err != nil {
+		t.Fatalf("Failed to marshal JSON: %v", err)
+	}
+
+	req, err := http.NewRequest("POST", "/scores", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatalf("Failed to create request: %v", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	assert.Equal(t, 201, w.Code)
+	var response map[string]interface{}
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal JSON: %v", err)
+	}
+	assert.Equal(t, float64(1), response["attempts"])
+	assert.Equal(t, float64(1), response["points"])
+	assert.Equal(t, float64(19), response["competitor_id"])
+	assert.Equal(t, float64(51), response["problem_id"])
 }
