@@ -8,6 +8,7 @@ import (
 	"github.com/josenymad/boulder-api/config"
 	"github.com/josenymad/boulder-api/types"
 	"github.com/josenymad/boulder-api/utils"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func HealthCheckHandler(c *gin.Context) {
@@ -79,9 +80,17 @@ func CreateCompetitor(c *gin.Context) {
 		return
 	}
 
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(competitor.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to hash password", "error": err.Error()})
+		return
+	}
+
+	competitor.Password = string(hashedPassword)
+
 	query := "INSERT INTO competitors (name, email, password, category_id) VALUES ($1, $2, $3, $4) RETURNING competitor_id"
 
-	err := config.DB.QueryRow(query, competitor.Name, competitor.Email, competitor.Password, competitor.CategoryID).Scan(&competitor.ID)
+	err = config.DB.QueryRow(query, competitor.Name, competitor.Email, competitor.Password, competitor.CategoryID).Scan(&competitor.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to create competitor", "error": err.Error()})
 		return

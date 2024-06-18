@@ -141,7 +141,7 @@ func TestCreateCompetitor(t *testing.T) {
 
 	competitor := types.Competitor{
 		Name:       "Test Competitor",
-		Email:      "test@gmail.com",
+		Email:      "test@mail.com",
 		Password:   "test_password",
 		CategoryID: 7,
 	}
