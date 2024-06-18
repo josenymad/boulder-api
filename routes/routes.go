@@ -87,7 +87,13 @@ func CreateCompetitor(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, competitor)
+	response := types.CompetitorResponse{
+		ID:         competitor.ID,
+		Name:       competitor.Name,
+		CategoryID: competitor.CategoryID,
+	}
+
+	c.JSON(http.StatusCreated, response)
 }
 
 func CreateBoulderProblem(c *gin.Context) {

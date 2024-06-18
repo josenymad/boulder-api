@@ -31,6 +31,12 @@ type Competitor struct {
 	CategoryID int    `json:"category_id" binding:"required"`
 }
 
+type CompetitorResponse struct {
+	ID         int    `json:"id"`
+	Name       string `json:"name" binding:"required"`
+	CategoryID int    `json:"category_id" binding:"required"`
+}
+
 type BoulderProblem struct {
 	ID      int `json:"id"`
 	Number  int `json:"number" binding:"required"`
