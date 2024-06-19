@@ -17,7 +17,7 @@ import (
 )
 
 var testFlag = flag.Bool("test", false, "Run in test mode")
-var developmentFlag = flag.Bool("development", false, "Run in development mode")
+var developmentFlag = flag.Bool("dev", false, "Run in development mode")
 
 func main() {
 	flag.Parse()
